@@ -38,7 +38,7 @@ async function run() {
 
     app.get("/job", async (req, res) => {
       let query = {};
-      if (req.query?.email) {
+      if (req.query?.email) {   
         query = { loggedInUserEmail: req.query.email };
       }
       const result = await jobsCollection.find(query).toArray();
@@ -51,6 +51,13 @@ async function run() {
       const result = await jobsCollection.findOne(query);
       res.send(result);
     });
+
+    app.delete("/jobs/:id",async(req,res)=>{
+        const id=req.params.id;
+        const query={_id:new ObjectId(id)};
+        const result=await jobsCollection.deleteOne(query);
+        res.send(result);
+    })
 
     app.post("/applications", async (req, res) => {
       const applicationsData = req.body;
