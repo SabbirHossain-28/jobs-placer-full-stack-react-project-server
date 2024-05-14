@@ -57,7 +57,7 @@ async function run() {
         })
         res
         .cookie("accessToken", token,cookieOption )
-        .send({token})
+        .send({success:true})
       })
       app.post("/logout", async (req, res) => {
         const userInfo = req.body;
@@ -76,7 +76,10 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/job", async (req, res) => {
+    app.get("/job",verifyToken, async (req, res) => {
+      if (req.user.email !== req.query.email) {
+        return;
+      }
       let query = {};
       if (req.query?.email) {   
         query = { loggedInUserEmail: req.query.email };
@@ -115,7 +118,16 @@ async function run() {
 
     app.post("/applications", async (req, res) => {
       const applicationsData = req.body;
-      console.log(applicationsData);
+      // const alreadyAppliedJobData=await jobApplicationCollection.findOne({
+      //   userEmail:applicationsData.userEmail,
+      //   jobId:applicationsData.jobId,
+      // })
+      // console.log("hhhh",alreadyAppliedJobData);
+      // if(alreadyAppliedJobData){
+      //   return res
+      //   .status(400)
+      //   .json({ message: "Sorry, you have already applied for this job." });
+      // }
       const result = await jobApplicationCollection.insertOne(applicationsData);
       res.send(result);
     });
@@ -125,9 +137,11 @@ async function run() {
         res.send(result);
     })
 
-    app.get("/application",async(req,res)=>{
+    app.get("/application",verifyToken,async(req,res)=>{
+      if (req.user.email !== req.query.email) {
+        return;
+      }
         let query={};
-        console.log(query);
         if(req.query?.email){
             query={userEmail:req.query.email}
         }
