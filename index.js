@@ -45,6 +45,20 @@ async function run() {
       res.send(result);
     });
 
+    app.put("/jobs/:id",async(req,res)=>{
+        const id=req.params.id;
+        const jobData=req.body;
+        const query={_id:new ObjectId(id)};
+        const options={upsert:true};
+        const updateData={
+            $set:{
+                ...jobData
+            }
+        }
+        const result=await jobsCollection.updateOne(query,updateData,options);
+        res.send(result);
+    })
+
     app.get("/jobDetails/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -65,6 +79,21 @@ async function run() {
       const result = await jobApplicationCollection.insertOne(applicationsData);
       res.send(result);
     });
+
+    app.get("/applications",async(req,res)=>{
+        const result=await jobApplicationCollection.find().toArray();
+        res.send(result);
+    })
+
+    app.get("/application",async(req,res)=>{
+        let query={};
+        console.log(query);
+        if(req.query?.email){
+            query={userEmail:req.query.email}
+        }
+        const result=await jobApplicationCollection.find(query).toArray();
+        res.send(result)
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
