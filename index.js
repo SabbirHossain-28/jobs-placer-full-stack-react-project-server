@@ -101,7 +101,7 @@ async function run() {
       }
       let query = {};
       if (req.query?.email) {   
-        query = { loggedInUserEmail: req.query.email };
+        query = { jobPosterEmail: req.query.email };
       }
       const result = await jobsCollection.find(query).toArray();
       res.send(result);
@@ -135,46 +135,52 @@ async function run() {
         res.send(result);
     })
 
+    // app.post("/applications", async (req, res) => {
+    //   const applicationsData = req.body;
+    //   // const alreadyAppliedJobData=await jobApplicationCollection.findOne({
+    //   //   userEmail:applicationsData.userEmail,
+    //   //   jobId:applicationsData.jobId,
+    //   // })
+    //   // console.log("hhhh",alreadyAppliedJobData);
+    //   // if(alreadyAppliedJobData){
+    //   //   return res
+    //   //   .status(400)
+    //   //   .json({ message: "Sorry, you have already applied for this job." });
+    //   // }
+    //   const result = await jobApplicationCollection.insertOne(applicationsData);
+    //   const jobId=applicationsData.jobId;
+    //   const query={_id:new ObjectId(jobId)};
+    //   const updateApplicantsNumber:={$inc:{jobApplicantsNumber:1}};
+    //   await jobsCollection.updateOne(query,updateApplicantsNumber);
+    //   res.send(result);
+    // });
+
     app.post("/applications", async (req, res) => {
       const applicationsData = req.body;
-      // const alreadyAppliedJobData=await jobApplicationCollection.findOne({
-      //   userEmail:applicationsData.userEmail,
-      //   jobId:applicationsData.jobId,
-      // })
-      // console.log("hhhh",alreadyAppliedJobData);
-      // if(alreadyAppliedJobData){
-      //   return res
-      //   .status(400)
-      //   .json({ message: "Sorry, you have already applied for this job." });
-      // }
       const result = await jobApplicationCollection.insertOne(applicationsData);
+      
+      const jobId = applicationsData.jobId;
+      const query = { _id: ObjectId.createFromHexString(jobId) }; // Use ObjectId without 'new'
+      const updateApplicantsNumber = { $inc: { jobApplicantsNumber: 1 } };
+      await jobsCollection.updateOne(query, updateApplicantsNumber);
+      
       res.send(result);
     });
-
     app.get("/applications",async(req,res)=>{
         const result=await jobApplicationCollection.find().toArray();
         res.send(result);
     })
 
-    app.get("/application",verifyToken,async(req,res)=>{
-      if (req.user.email !== req.query.email) {
-        return;
-      }
+    app.get("/application",async(req,res)=>{
         let query={};
-        if(req.query?.email){
-            query={userEmail:req.query.email}
+        if(req.query?.email && req.query.filter){
+            query={userEmail:req.query.email,jobCategory:req.query.filter}
+        }
+        else {
+          query={userEmail:req.query.email}
         }
         const result=await jobApplicationCollection.find(query).toArray();
         res.send(result)
-    })
-
-    app.get("/categoryFilter",async(req,res)=>{
-      let query={};
-      if(req.query?.filter){
-        query={jobCategory:req.query.filter}
-      }
-      const result=await jobApplicationCollection.find(query).toArray();
-      res.send(result)
     })
 
     // Send a ping to confirm a successful connection
