@@ -78,11 +78,20 @@ async function run() {
     app.get("/allJobs", async (req, res) => {
       const size=parseInt(req.query.size);
       const page=parseInt(req.query.page)-1;
-      const result = await jobsCollection.find().skip(page*size).limit(size).toArray();
+      const  search=req.query.search;
+      let query={
+        jobTitle:{$regex: new RegExp(search, "i")},
+      }
+      const result = await jobsCollection.find(query).skip(page*size).limit(size).toArray();
       res.send(result);
     });
     app.get("/countedJobs", async (req, res) => {
-      const result = await jobsCollection.countDocuments();
+      const search=req.query.search;
+      let query={
+        jobTitle:{$regex: new RegExp(search, "i")},
+      }
+      console.log(query);
+      const result = await jobsCollection.countDocuments(query);
       res.send({result});
     });
 
