@@ -75,6 +75,16 @@ async function run() {
       const result = await jobsCollection.find().toArray();
       res.send(result);
     });
+    app.get("/allJobs", async (req, res) => {
+      const size=parseInt(req.query.size);
+      const page=parseInt(req.query.page)-1;
+      const result = await jobsCollection.find().skip(page*size).limit(size).toArray();
+      res.send(result);
+    });
+    app.get("/countedJobs", async (req, res) => {
+      const result = await jobsCollection.countDocuments();
+      res.send({result});
+    });
 
     app.get("/job",verifyToken, async (req, res) => {
       if (req.user.email !== req.query.email) {
@@ -147,6 +157,15 @@ async function run() {
         }
         const result=await jobApplicationCollection.find(query).toArray();
         res.send(result)
+    })
+
+    app.get("/categoryFilter",async(req,res)=>{
+      let query={};
+      if(req.query?.filter){
+        query={jobCategory:req.query.filter}
+      }
+      const result=await jobApplicationCollection.find(query).toArray();
+      res.send(result)
     })
 
     // Send a ping to confirm a successful connection
